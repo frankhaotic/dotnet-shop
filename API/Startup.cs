@@ -13,6 +13,7 @@ using API.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using API.Errors;
 using System.Linq;
+using API.Extensions;
 
 namespace API
 {
@@ -27,42 +28,20 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped(typeof(IGenericRepository<>), (typeof(GenericRepository<>)));
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddControllers();
             services.AddDbContext<StoreContext>(x =>
                 x.UseSqlite(_config.GetConnectionString("DefaultConnection")));
 
-            services.Configure<ApiBehaviorOptions>(options => 
-            {
-                options.InvalidModelStateResponseFactory = actionContext => 
-                {
-                    var errors = actionContext.ModelState
-                        .Where(e => e.Value.Errors.Count > 0)
-                        .SelectMany(x => x.Value.Errors)
-                        .Select(x => x.ErrorMessage).ToArray();
+            services.AddApplicationServices();
+            services.AddSwaggerDocumentation();
 
-                    var errorResponse = new ApiValidationErrorResponse
-                    {
-                        Errors = errors
-                    };
-
-                    return new BadRequestObjectResult(errorResponse);
-                };
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<ExceptionMiddleware>();
-
-            if (env.IsDevelopment())
-            {
-                // app.UseSwagger();
-                // app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
-            }
 
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
@@ -73,6 +52,8 @@ namespace API
             app.UseStaticFiles();   
 
             app.UseAuthorization();
+
+            app.UseSwaggerDocumentation();
 
             app.UseEndpoints(endpoints =>
             {
