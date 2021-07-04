@@ -13,8 +13,14 @@ export class ShopComponent implements OnInit {
   products!: IProduct[];
   brands!: IBrand[];
   types!: IType[];
-  brandIdSelected!: number;
-  typeIdSelected!: number;
+  brandIdSelected = 0;
+  typeIdSelected = 0;
+
+  // sortOptions = [
+  //   {name: 'Alphabetical', value: 'name'},
+  //   {name: 'Price: Low to High', value: 'priceAsc'},
+  //   {name: 'Price: High to Low', value: 'priceDesc'}
+  // ]
 
   constructor(private shopService: ShopService) { }
 
