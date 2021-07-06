@@ -1,19 +1,13 @@
-using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using AutoMapper;
 using API.Helpers;
 using API.Middleware;
-using Microsoft.AspNetCore.Mvc;
-using API.Errors;
-using System.Linq;
 using API.Extensions;
+using StackExchange.Redis;
 
 namespace API
 {
@@ -32,6 +26,12 @@ namespace API
             services.AddControllers();
             services.AddDbContext<StoreContext>(x =>
                 x.UseSqlite(_config.GetConnectionString("DefaultConnection")));
+
+            services.AddSingleton<ConnectionMultiplexer>(c => {
+                var configuration = ConfigurationOptions.Parse(_config.GetConnectionString("Redis"),
+                true);
+                return ConnectionMultiplexer.Connect(configuration);
+            });
 
             services.AddApplicationServices();
             services.AddSwaggerDocumentation();
