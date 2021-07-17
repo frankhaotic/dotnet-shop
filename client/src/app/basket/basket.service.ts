@@ -58,6 +58,7 @@ export class BasketService {
   decrementItemQuantity(item: IBasketItem) {
     const basket = this.getCurrentBasketValue();
     const foundItemIndex = basket.items.findIndex(x => x.id === item.id);
+    console.log("hello!!!")
     if(basket.items[foundItemIndex].quantity > 1) {
       basket.items[foundItemIndex].quantity--;
       this.setBasket(basket);
@@ -65,6 +66,7 @@ export class BasketService {
       this.removeItemFromBasket(item);
     }
   }
+
   removeItemFromBasket(item: IBasketItem) {
     const basket = this.getCurrentBasketValue();
     if(basket.items.some(x => x.id === item.id)) {
