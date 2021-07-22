@@ -64,7 +64,6 @@ export class CheckoutPaymentComponent implements AfterViewInit, OnDestroy {
     const basket = this.basketService.getCurrentBasketValue()
     const orderToCreate = this.getOrdertoCreate(basket);
     this.checkoutService.createOrder(orderToCreate).subscribe((order: IOrder) => {
-      this.toastr.success('Order created successfully')
       this.stripe.confirmCardPayment(basket.clientSecret, {
         payment_method: {
           card: this.cardNumber,
@@ -75,11 +74,12 @@ export class CheckoutPaymentComponent implements AfterViewInit, OnDestroy {
       }).then(result => {
         console.log(result);
         if (result.paymentIntent) {
+          this.toastr.success('Order created successfully')
           this.basketService.deleteLocalBasket(basket.id)
           const navigationExtras: NavigationExtras = {state: order};
           this.router.navigate(['checkout/success'], navigationExtras)
         } else {
-          this.toastr.error('Payment error')
+          this.toastr.error(result.error.message)
         }
       })
     }, error => {
