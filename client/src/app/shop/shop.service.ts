@@ -18,10 +18,22 @@ export class ShopService {
   types: IType[] = [];
   pagination = new Pagination();
   shopParams = new ShopParams();
+  productCache = new Map();
 
   constructor(private http: HttpClient) { }
 
-  getProducts() {
+  getProducts(useCache: boolean) {
+    if(useCache === false) {
+      this.productCache = new Map();
+    }
+
+    if(this.productCache.size > 0 && useCache === true) {
+      if(this.productCache.has(Object.values(this.shopParams).join('-'))) {
+        this.pagination.data = this.productCache.get(Object.values(this.shopParams).join('-'));
+        return of(this.pagination);
+      }
+    }
+
     let params = new HttpParams();
 
     if(this.shopParams.brandId !== 0) {
@@ -41,9 +53,9 @@ export class ShopService {
     params = params.append('pageIndex', this.shopParams.pageSize.toString());
 
     return this.http.get<IPagination>(this.baseUrl + 'products', {observe: 'response', params})
-    .pipe(
+    .pipe( 
       map(response => {
-        this.products = [...this.products, ...response.body.data];
+        this.productCache.set(Object.values(this.shopParams).join('-'), response.body.data);
         this.pagination = response.body;
         return this.pagination;
       })
@@ -59,7 +71,10 @@ export class ShopService {
   }
 
   getProduct(id: number) {
-    const product = this.products.find(p => p.id === id );
+    let product: IProduct;
+    this.productCache.forEach((products: IProduct[]) => {
+      product = products.find(p => p.id === id);
+    })
 
     if(product) {
       return of(product);
